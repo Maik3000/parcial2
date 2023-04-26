@@ -52,5 +52,3 @@ print(tree.min())
 #test para hallar el valor maximo
 print('\n*** Maximum ***\n')
 print(tree.max())
-
-
