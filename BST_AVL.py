@@ -1,124 +1,136 @@
-class NodoBST:
-    def __init__(self, valor):
-        self.valor = valor
-        self.izquierda = None
-        self.derecha = None
+class Node:
+    def __init__(self, val=None, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
 
-class ArbolBST:
+class BST:
     def __init__(self):
-        self.raiz = None
+        self.root = None
 
-    def insertar(self, valor):
-        nuevo_nodo = NodoBST(valor)
-        if self.raiz is None:
-            self.raiz = nuevo_nodo
+    def insert(self, val):
+        if self.root is None:
+            self.root = Node(val)
         else:
-            self._insertar_recursivo(self.raiz, nuevo_nodo)
+            self._insert(val, self.root)
 
-    def _insertar_recursivo(self, nodo_actual, nuevo_nodo):
-        if nuevo_nodo.valor < nodo_actual.valor:
-            if nodo_actual.izquierda is None:
-                nodo_actual.izquierda = nuevo_nodo
+    def _insert(self, val, current_node):
+        if val < current_node.val:
+            if current_node.left is None:
+                current_node.left = Node(val)
             else:
-                self._insertar_recursivo(nodo_actual.izquierda, nuevo_nodo)
+                self._insert(val, current_node.left)
+        elif val > current_node.val:
+            if current_node.right is None:
+                current_node.right = Node(val)
+            else:
+                current_node.right = self._insert(val, current_node.right)
+
         else:
-            if nodo_actual.derecha is None:
-                nodo_actual.derecha = nuevo_nodo
-            else:
-                self._insertar_recursivo(nodo_actual.derecha, nuevo_nodo)
+            print("Value already in tree.")
 
+# Crear un nuevo árbol BST
+bst = BST()
 
-class NodoAVL:
-    def __init__(self, valor):
-        self.valor = valor
-        self.izquierda = None
-        self.derecha = None
-        self.altura = 1
+# Insertar valores en el árbol
+bst.insert(5)
+bst.insert(3)
+bst.insert(7)
 
-class ArbolAVL:
+class Node:
+    def __init__(self, val=None, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
+        self.height = 1
+
+class AVL:
     def __init__(self):
-        self.raiz = None
+        self.root = None
 
-    def insertar(self, valor):
-        nuevo_nodo = NodoAVL(valor)
-        if self.raiz is None:
-            self.raiz = nuevo_nodo
+    def insert(self, val):
+        if self.root is None:
+            self.root = Node(val)
         else:
-            self.raiz = self._insertar_recursivo(self.raiz, nuevo_nodo)
+            self.root = self._insert(val, self.root)
 
-    def _insertar_recursivo(self, nodo_actual, nuevo_nodo):
-        if nuevo_nodo.valor < nodo_actual.valor:
-            if nodo_actual.izquierda is None:
-                nodo_actual.izquierda = nuevo_nodo
-            else:
-                nodo_actual.izquierda = self._insertar_recursivo(nodo_actual.izquierda, nuevo_nodo)
+    def _insert(self, val, current_node):
+        if current_node is None:
+            return Node(val)
+        elif val < current_node.val:
+            current_node.left = self._insert(val, current_node.left)
         else:
-            if nodo_actual.derecha is None:
-                nodo_actual.derecha = nuevo_nodo
-            else:
-                nodo_actual.derecha = self._insertar_recursivo(nodo_actual.derecha, nuevo_nodo)
-        
-        nodo_actual.altura = 1 + max(self._altura(nodo_actual.izquierda), self._altura(nodo_actual.derecha))
-        balance = self._calcular_balance(nodo_actual)
-        
-        # Rotación simple a la derecha
-        if balance > 1 and nuevo_nodo.valor < nodo_actual.izquierda.valor:
-            return self._rotacion_derecha(nodo_actual)
-        
-        # Rotación simple a la izquierda
-        if balance < -1 and nuevo_nodo.valor > nodo_actual.derecha.valor:
-            return self._rotacion_izquierda(nodo_actual)
-        
-        # Rotación doble a la izquierda
-        if balance > 1 and nuevo_nodo.valor > nodo_actual.izquierda.valor:
-            nodo_actual.izquierda = self._rotacion_izquierda(nodo_actual.izquierda)
-            return self._rotacion_derecha(nodo_actual)
-        
-        # Rotación doble a la derecha
-        if balance < -1 and nuevo_nodo.valor < nodo_actual.derecha.valor:
-            nodo_actual.derecha = self._rotacion_derecha(nodo_actual.derecha)
-            return self._rotacion_izquierda(nodo_actual)
-        
-        return nodo_actual
+            current_node.right = self._insert(val, current_node.right)
 
-    def _altura(self, nodo):
-        if nodo is None:
+        current_node.height = 1 + max(self._get_height(current_node.left), self._get_height(current_node.right))
+        balance = self._get_balance(current_node)
+
+        # Si el nodo está desbalanceado, aplicamos las rotaciones necesarias
+        if balance > 1 and val < current_node.left.val:
+            return self._rotate_right(current_node)
+
+        if balance > 1 and val > current_node.left.val:
+            current_node.left = self._rotate_left(current_node.left)
+            return self._rotate_right(current_node)
+
+        if balance < -1 and val > current_node.right.val:
+            return self._rotate_left(current_node)
+
+        if balance < -1 and val < current_node.right.val:
+            current_node.right = self._rotate_right(current_node.right)
+            return self._rotate_left(current_node)
+
+        return current_node
+
+    def _get_height(self, current_node):
+        if current_node is None:
             return 0
-        return nodo.altura
+        return current_node.height
 
-    def _calcular_balance(self, nodo):
-        if nodo is None:
+    def _get_balance(self, current_node):
+        if current_node is None:
             return 0
-        return self._altura(nodo.izquierda) - self._altura(nodo.derecha)
+        return self._get_height(current_node.left) - self._get_height(current_node.right)
 
+    def _rotate_left(self, current_node):
+        new_node = current_node.right
+        current_node.right = new_node.left
+        new_node.left = current_node
+        current_node.height = 1 + max(self._get_height(current_node.left), self._get_height(current_node.right))
+        new_node.height = 1 + max(self._get_height(new_node.left), self._get_height(new_node.right))
+        return new_node
+
+    def _rotate_right(self, current_node):
+        new_node = current_node.left
+        current_node.left = new_node.right
+        new_node.right = current_node
+        current_node.height = 1 + max(self._get_height(current_node.left), self._get_height(current_node.right))
+        new_node.height = 1 + max(self._get_height(new_node.left), self._get_height(new_node.right))
+        return new_node
             
 import random
 
-arbol_bst = ArbolBST()
+arbol_bst = BST()
 
-# Generar un conjunto de 10 millones de valores aleatorios
 valores = set(random.sample(range(1, 10000001), 10000000))
 
-# Insertar cada valor en el árbol BST
 for valor in valores:
-    arbol_bst.insertar(valor)
+    arbol_bst.insert(valor)
 
 
-arbol_avl = ArbolAVL()
+arbol_avl = AVL()
 
-# Generar un conjunto de 10 millones de valores aleatorios
 valores = set(random.sample(range(1, 10000001), 10000000))
 
-# Insertar cada valor en el árbol AVL
 for valor in valores:
-    arbol_avl.insertar(valor)
+    arbol_avl.insert(valor)
 
 import time
 
 # Tomar el tiempo de ejecución del árbol BST
 inicio_bst = time.time()
 for valor in valores:
-    arbol_bst.insertar(valor)
+    arbol_bst.insert(valor)
 fin_bst = time.time()
 tiempo_bst = fin_bst - inicio_bst
 print("Tiempo de ejecución del árbol BST: ", tiempo_bst)
@@ -126,7 +138,7 @@ print("Tiempo de ejecución del árbol BST: ", tiempo_bst)
 # Tomar el tiempo de ejecución del árbol AVL
 inicio_avl = time.time()
 for valor in valores:
-    arbol_avl.insertar(valor)
+    arbol_avl.insert(valor)
 fin_avl = time.time()
 tiempo_avl = fin_avl - inicio_avl
 print("Tiempo de ejecución del árbol AVL: ", tiempo_avl)
