@@ -1,85 +1,96 @@
-from graphviz import Graph
-import random
+class Node:
+    def __init__(self, val):
+        self.val = val
+        self.left = None
+        self.right = None
+        self.height = 1
 
 class AVLTree:
     def __init__(self):
         self.root = None
 
-    class Node:
-        def __init__(self, key):
-            self.key = key
-            self.left = None
-            self.right = None
-            self.height = 1
+    def insert(self, root, val):
+        if not root:
+            return Node(val)
+        elif val < root.val:
+            root.left = self.insert(root.left, val)
+        else:
+            root.right = self.insert(root.right, val)
 
-    def insert(self, key):
-        def get_height(node):
-            if node is None:
-                return 0
-            return node.height
+        root.height = 1 + max(self.getHeight(root.left),
+                              self.getHeight(root.right))
 
-        def get_balance(node):
-            if node is None:
-                return 0
-            return get_height(node.left) - get_height(node.right)
+        balance = self.getBalance(root)
 
-        def right_rotate(node):
-            new_root = node.left
-            node.left = new_root.right
-            new_root.right = node
-            node.height = max(get_height(node.left), get_height(node.right)) + 1
-            new_root.height = max(get_height(new_root.left), get_height(new_root.right)) + 1
-            return new_root
+        if balance > 1 and val < root.left.val:
+            return self.rightRotate(root)
 
-        def left_rotate(node):
-            new_root = node.right
-            node.right = new_root.left
-            new_root.left = node
-            node.height = max(get_height(node.left), get_height(node.right)) + 1
-            new_root.height = max(get_height(new_root.left), get_height(new_root.right)) + 1
-            return new_root
+        if balance < -1 and val > root.right.val:
+            return self.leftRotate(root)
 
-        def insert_node(node, key):
-            if node is None:
-                return AVLTree.Node(key)
-            if key < node.key:
-                node.left = insert_node(node.left, key)
-            else:
-                node.right = insert_node(node.right, key)
-            node.height = max(get_height(node.left), get_height(node.right)) + 1
-            balance = get_balance(node)
-            if balance > 1 and key < node.left.key:
-                return right_rotate(node)
-            if balance < -1 and key > node.right.key:
-                return left_rotate(node)
-            if balance > 1 and key > node.left.key:
-                node.left = left_rotate(node.left)
-                return right_rotate(node)
-            if balance < -1 and key < node.right.key:
-                node.right = right_rotate(node.right)
-                return left_rotate(node)
-            return node
+        if balance > 1 and val > root.left.val:
+            root.left = self.leftRotate(root.left)
+            return self.rightRotate(root)
 
-        self.root = insert_node(self.root, key)
+        if balance < -1 and val < root.right.val:
+            root.right = self.rightRotate(root.right)
+            return self.leftRotate(root)
 
-    def render(self):
-        def render_node(node, dot):
-            if node is not None:
-                dot.node(str(node.key), str(node.key))
-                if node.left is not None:
-                    dot.edge(str(node.key), str(node.left.key))
-                    render_node(node.left, dot)
-                if node.right is not None:
-                    dot.edge(str(node.key), str(node.right.key))
-                    render_node(node.right, dot)
+        return root
 
-        dot = Digraph(comment='AVL Tree')
-        render_node(self.root, dot)
-        dot.render('avl_tree.gv', view=True)
+    def leftRotate(self, z):
+        y = z.right
+        T2 = y.left
+
+        y.left = z
+        z.right = T2
+
+        z.height = 1 + max(self.getHeight(z.left),
+                           self.getHeight(z.right))
+        y.height = 1 + max(self.getHeight(y.left),
+                           self.getHeight(y.right))
+
+        return y
+
+    def rightRotate(self, z):
+        y = z.left
+        T3 = y.right
+
+        y.right = z
+        z.left = T3
+
+        z.height = 1 + max(self.getHeight(z.left),
+                           self.getHeight(z.right))
+        y.height = 1 + max(self.getHeight(y.left),
+                           self.getHeight(y.right))
+
+        return y
+
+    def getHeight(self, root):
+        if not root:
+            return 0
+
+        return root.height
+
+    def getBalance(self, root):
+        if not root:
+            return 0
+
+        return self.getHeight(root.left) - self.getHeight(root.right)
+
+    def printTree(self, root, level=0):
+        if root:
+            self.printTree(root.right, level + 1)
+            print('     ' * level, root.val)
+            self.printTree(root.left, level + 1)
+
 
 tree = AVLTree()
-for i in range(100):
-    tree.insert(random.randint(1, 1000))
 
-import os
-os.environ["PATH"] += os.pathsep + 'ruta_de_instalación_de_graphviz'
+# Insert 100 random values into the AVL Tree
+import random
+for i in range(100):
+    tree.root = tree.insert(tree.root, random.randint(0, 1000))
+
+# Print the AVL Tree
+tree.printTree(tree.root)
